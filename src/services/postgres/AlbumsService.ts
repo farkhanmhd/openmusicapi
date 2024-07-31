@@ -29,7 +29,7 @@ export default class AlbumsService {
 
   async getAlbumById(id: string) {
     const query = {
-      text: 'SELECT a.album_id, a.name, a.year, s.song_id, s.title, s.performer FROM albums a JOIN songs s ON a.album_id = s.album_id WHERE a.album_id = $1',
+      text: 'SELECT a.album_id, a.name, a.year, s.song_id, s.title, s.performer FROM albums a FULL JOIN songs s ON a.album_id = s.album_id WHERE a.album_id = $1',
       values: [id],
     };
 
@@ -50,7 +50,7 @@ export default class AlbumsService {
 
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError('Failed to update album. Album not found');
     }
   }

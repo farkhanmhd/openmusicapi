@@ -52,11 +52,13 @@ export default class AlbumsHandler {
       id: fetchedAlbum[0].album_id,
       name: fetchedAlbum[0].name,
       year: fetchedAlbum[0].year,
-      songs: fetchedAlbum.map((song) => ({
-        id: song.song_id,
-        title: song.title,
-        performer: song.performer,
-      })),
+      songs: fetchedAlbum
+        .filter((songs) => songs.song_id)
+        .map((song) => ({
+          id: song.song_id,
+          title: song.title,
+          performer: song.performer,
+        })),
     };
 
     return h.response({

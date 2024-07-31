@@ -29,11 +29,12 @@ export default class SongsService {
     return result.rows[0].song_id;
   }
 
-  async getSongs(title: string, performer: string) {
+  async getSongs(title: string = '', performer: string = '') {
     const query = {
-      text: 'SELECT * FROM songs WHERE title ILIKE $1 or performer ILIKE $2',
+      text: `SELECT * FROM songs WHERE LOWER(title) LIKE LOWER(CONCAT('%',COALESCE($1, ''), '%')) AND LOWER(performer) LIKE LOWER(CONCAT('%',COALESCE($2, ''),'%'))`,
       values: [title, performer],
     };
+
     const songs = await this._pool.query(query);
     const results = songs.rows.map((song) => ({
       id: song.song_id,
@@ -51,7 +52,6 @@ export default class SongsService {
     };
 
     const result = await this._pool.query(query);
-    console.log(result.rows);
     if (!result.rows.length) {
       throw new NotFoundError('Song not found');
     }
