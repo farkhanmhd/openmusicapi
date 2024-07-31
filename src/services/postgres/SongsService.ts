@@ -29,8 +29,12 @@ export default class SongsService {
     return result.rows[0].song_id;
   }
 
-  async getSongs() {
-    const songs = await this._pool.query('SELECT * FROM songs');
+  async getSongs(title: string, performer: string) {
+    const query = {
+      text: 'SELECT * FROM songs WHERE title ILIKE $1 or performer ILIKE $2',
+      values: [title, performer],
+    };
+    const songs = await this._pool.query(query);
     const results = songs.rows.map((song) => ({
       id: song.song_id,
       title: song.title,
