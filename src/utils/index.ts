@@ -1,5 +1,3 @@
-import { ISong } from 'src/types';
-
 const mapAlbum = ({
   album_id,
   name,
@@ -15,21 +13,29 @@ const mapAlbum = ({
 });
 
 const mapSong = ({
-  id,
+  song_id,
   title,
   year,
-  genre,
   performer,
+  genre,
   duration,
-  albumId,
-}: ISong) => ({
-  id,
+  album_id,
+}: {
+  song_id: string;
+  title: string;
+  year: number;
+  performer: string;
+  genre: string;
+  duration: number;
+  album_id: string;
+}) => ({
+  id: song_id,
   title,
   year,
-  genre,
   performer,
+  genre,
   duration,
-  albumId,
+  albumId: album_id,
 });
 
 export { mapAlbum, mapSong };

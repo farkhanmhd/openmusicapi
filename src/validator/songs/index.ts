@@ -1,6 +1,6 @@
-import InvariantError from 'src/exceptions/InvariantError';
 import { ISongPayload } from 'src/types';
 import SongPayloadSchema from './schema';
+import InvariantError from '../../exceptions/InvariantError';
 
 const SongValidator = {
   validateSongPayload: (payload: ISongPayload) => {

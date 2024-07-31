@@ -47,7 +47,17 @@ export default class AlbumsHandler {
 
   async getAlbumByIdHandler(request: Request, h: ResponseToolkit) {
     const { id } = request.params;
-    const album = await this._service.getAlbumById(id);
+    const fetchedAlbum = await this._service.getAlbumById(id);
+    const album = {
+      id: fetchedAlbum[0].album_id,
+      name: fetchedAlbum[0].name,
+      year: fetchedAlbum[0].year,
+      songs: fetchedAlbum.map((song) => ({
+        id: song.song_id,
+        title: song.title,
+        performer: song.performer,
+      })),
+    };
 
     return h.response({
       status: 'success',

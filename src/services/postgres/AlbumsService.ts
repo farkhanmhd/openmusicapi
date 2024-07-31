@@ -29,7 +29,7 @@ export default class AlbumsService {
 
   async getAlbumById(id: string) {
     const query = {
-      text: 'SELECT * FROM albums WHERE album_id = $1',
+      text: 'SELECT a.album_id, a.name, a.year, s.song_id, s.title, s.performer FROM albums a JOIN songs s ON a.album_id = s.album_id WHERE a.album_id = $1',
       values: [id],
     };
 
@@ -39,7 +39,7 @@ export default class AlbumsService {
       throw new NotFoundError('Album not found');
     }
 
-    return result.rows.map(mapAlbum)[0];
+    return result.rows;
   }
 
   async editAlbumById(id: string, { name, year }: IAlbumPayload) {
