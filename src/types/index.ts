@@ -1,4 +1,4 @@
-interface ISongPayload {
+export interface ISongPayload {
   title: string;
   year: number;
   performer: string;
@@ -7,15 +7,24 @@ interface ISongPayload {
   albumId?: string;
 }
 
-interface ISongAlbum {
+export interface ISongAlbum {
   id: string;
   title: string;
   performer: string;
 }
 
-interface IAlbumPayload {
+export interface IAlbumPayload {
   name: string;
   year: number;
 }
 
-export { ISongPayload, ISongAlbum, IAlbumPayload };
+export interface IUser {
+  username: string;
+  password: string;
+  fullname: string;
+}
+
+export interface IAuthPayload {
+  username: string;
+  password: string;
+}

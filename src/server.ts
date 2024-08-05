@@ -1,18 +1,25 @@
 import Hapi from '@hapi/hapi';
 import dotenv from 'dotenv';
+import ClientError from './exceptions/ClientError';
+
 import albums from './api/albums';
-import songs from './api/songs';
 import AlbumValidator from './validator/albums';
 import AlbumsService from './services/postgres/AlbumsService';
+
+import songs from './api/songs';
 import SongValidator from './validator/songs';
 import SongsService from './services/postgres/SongsService';
-import ClientError from './exceptions/ClientError';
+
+import users from './api/users';
+import UsersValidator from './validator/users';
+import UsersService from './services/postgres/UsersService';
 
 dotenv.config();
 
 const init = async () => {
   const albumsService = new AlbumsService();
   const songsService = new SongsService();
+  const usersService = new UsersService();
 
   const server = Hapi.server({
     port: process.env.PORT,
@@ -39,12 +46,20 @@ const init = async () => {
         validator: SongValidator,
       },
     },
+    {
+      plugin: users,
+      options: {
+        service: usersService,
+        validator: UsersValidator,
+      },
+    },
   ]);
 
   server.ext(
     'onPreResponse',
     (request: Hapi.Request, h: Hapi.ResponseToolkit) => {
       const { response } = request;
+
       if (response instanceof ClientError) {
         const newResponse = h.response({
           status: 'fail',
