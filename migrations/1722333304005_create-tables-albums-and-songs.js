@@ -10,7 +10,7 @@ exports.shorthands = undefined;
  */
 exports.up = (pgm) => {
   pgm.createTable('albums', {
-    album_id: {
+    id: {
       type: 'VARCHAR(50)',
       primaryKey: true,
     },
@@ -25,7 +25,7 @@ exports.up = (pgm) => {
   });
 
   pgm.createTable('songs', {
-    song_id: {
+    id: {
       type: 'VARCHAR(50)',
       primaryKey: true,
     },
@@ -50,7 +50,7 @@ exports.up = (pgm) => {
     },
     album_id: {
       type: 'VARCHAR(50)',
-      references: '"albums"',
+      references: '"albums"("id")',
       onDelete: 'CASCADE',
     },
   });

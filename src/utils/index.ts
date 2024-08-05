@@ -1,19 +1,19 @@
 const mapAlbum = ({
-  album_id,
+  id,
   name,
   year,
 }: {
-  album_id: string;
+  id: string;
   name: string;
   year: number;
 }) => ({
-  id: album_id,
+  id,
   name,
   year,
 });
 
 const mapSong = ({
-  song_id,
+  id,
   title,
   year,
   performer,
@@ -21,7 +21,7 @@ const mapSong = ({
   duration,
   album_id,
 }: {
-  song_id: string;
+  id: string;
   title: string;
   year: number;
   performer: string;
@@ -29,7 +29,7 @@ const mapSong = ({
   duration: number;
   album_id: string;
 }) => ({
-  id: song_id,
+  id,
   title,
   year,
   performer,

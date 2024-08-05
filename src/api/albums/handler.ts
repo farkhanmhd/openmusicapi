@@ -49,7 +49,7 @@ export default class AlbumsHandler {
     const { id } = request.params;
     const fetchedAlbum = await this._service.getAlbumById(id);
     const album = {
-      id: fetchedAlbum[0].album_id,
+      id: fetchedAlbum[0].id,
       name: fetchedAlbum[0].name,
       year: fetchedAlbum[0].year,
       songs: fetchedAlbum

@@ -21,23 +21,23 @@ export default class SongsService {
   }: ISongPayload) {
     const id = `song-${nanoid(16)}`;
     const query = {
-      text: 'INSERT INTO songs VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING song_id',
+      text: 'INSERT INTO songs VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id',
       values: [id, title, year, performer, genre, duration, albumId],
     };
 
     const result = await this._pool.query(query);
-    return result.rows[0].song_id;
+    return result.rows[0].id;
   }
 
   async getSongs(title: string = '', performer: string = '') {
     const query = {
-      text: `SELECT * FROM songs WHERE LOWER(title) LIKE LOWER(CONCAT('%',COALESCE($1, ''), '%')) AND LOWER(performer) LIKE LOWER(CONCAT('%',COALESCE($2, ''),'%'))`,
+      text: `SELECT id, title, performer FROM songs WHERE LOWER(title) LIKE LOWER(CONCAT('%',COALESCE($1, ''), '%')) AND LOWER(performer) LIKE LOWER(CONCAT('%',COALESCE($2, ''),'%'))`,
       values: [title, performer],
     };
 
     const songs = await this._pool.query(query);
     const results = songs.rows.map((song) => ({
-      id: song.song_id,
+      id: song.id,
       title: song.title,
       performer: song.performer,
     }));
@@ -47,7 +47,7 @@ export default class SongsService {
 
   async getSongById(id: string) {
     const query = {
-      text: 'SELECT * FROM songs WHERE song_id = $1',
+      text: 'SELECT * FROM songs WHERE id = $1',
       values: [id],
     };
 
@@ -61,11 +61,11 @@ export default class SongsService {
 
   async editSongById(
     id: string,
-    { title, year, performer, genre, duration, albumId }: ISongPayload
+    { title, year, performer, genre, duration }: ISongPayload
   ) {
     const query = {
-      text: 'UPDATE songs SET title = $1, year = $2, performer = $3, genre = $4, duration = $5, album_id = $6 WHERE song_id = $7',
-      values: [title, year, performer, genre, duration, albumId, id],
+      text: 'UPDATE songs SET title = $1, year = $2, performer = $3, genre = $4, duration = $5 WHERE id = $6',
+      values: [title, year, performer, genre, duration, id],
     };
 
     const result = await this._pool.query(query);
@@ -77,7 +77,7 @@ export default class SongsService {
 
   async deleteSongById(id: string) {
     const query = {
-      text: 'DELETE FROM songs WHERE song_id = $1 RETURNING song_id',
+      text: 'DELETE FROM songs WHERE id = $1 RETURNING id',
       values: [id],
     };
 

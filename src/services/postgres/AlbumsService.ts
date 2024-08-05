@@ -14,12 +14,12 @@ export default class AlbumsService {
   async addAlbum({ name, year }: IAlbumPayload) {
     const id = `album-${nanoid(16)}`;
     const query = {
-      text: 'INSERT INTO albums VALUES($1, $2, $3) RETURNING album_id',
+      text: 'INSERT INTO albums VALUES($1, $2, $3) RETURNING id',
       values: [id, name, year],
     };
 
     const result = await this._pool.query(query);
-    return result.rows[0].album_id;
+    return result.rows[0].id;
   }
 
   async getAlbums() {
@@ -29,7 +29,10 @@ export default class AlbumsService {
 
   async getAlbumById(id: string) {
     const query = {
-      text: 'SELECT a.album_id, a.name, a.year, s.song_id, s.title, s.performer FROM albums a FULL JOIN songs s ON a.album_id = s.album_id WHERE a.album_id = $1',
+      text: `SELECT albums.id, albums.name, albums.year, songs.id as song_id ,songs.title, songs.performer
+        FROM albums
+        FULL JOIN songs ON albums.id = songs.album_id
+        WHERE albums.id = $1`,
       values: [id],
     };
 
@@ -44,7 +47,7 @@ export default class AlbumsService {
 
   async editAlbumById(id: string, { name, year }: IAlbumPayload) {
     const query = {
-      text: 'UPDATE albums SET name = $1, year = $2 WHERE album_id = $3',
+      text: 'UPDATE albums SET name = $1, year = $2 WHERE id = $3',
       values: [name, year, id],
     };
 
@@ -57,7 +60,7 @@ export default class AlbumsService {
 
   async deleteAlbumById(id: string) {
     const query = {
-      text: 'DELETE FROM albums WHERE album_id = $1 RETURNING album_id',
+      text: 'DELETE FROM albums WHERE id = $1 RETURNING id',
       values: [id],
     };
 
