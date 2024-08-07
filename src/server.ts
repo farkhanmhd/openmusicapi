@@ -18,8 +18,11 @@ import UsersService from './services/postgres/UsersService';
 import authentications from './api/authentications';
 import AuthenticationsService from './services/postgres/AuthenticationsService';
 import AuthenticationsValidator from './validator/authentications';
-
 import TokenManager from './tokenize/TokenManager';
+
+import playlists from './api/playlists';
+import PlaylistsServices from './services/postgres/PlaylistsServices';
+import PlaylistsValidator from './validator/playlists';
 
 dotenv.config();
 
@@ -27,6 +30,7 @@ const init = async () => {
   const albumsService = new AlbumsService();
   const songsService = new SongsService();
   const usersService = new UsersService();
+  const playlistsService = new PlaylistsServices();
   const authenticationsService = new AuthenticationsService();
 
   const server = Hapi.server({
@@ -92,6 +96,13 @@ const init = async () => {
         validator: AuthenticationsValidator,
       },
     },
+    {
+      plugin: playlists,
+      options: {
+        service: playlistsService,
+        validator: PlaylistsValidator,
+      },
+    },
   ]);
 
   server.ext(
@@ -99,16 +110,27 @@ const init = async () => {
     (request: Hapi.Request, h: Hapi.ResponseToolkit) => {
       const { response } = request;
 
-      if (response instanceof ClientError) {
+      if (response instanceof Error) {
+        if (response instanceof ClientError) {
+          const newResponse = h.response({
+            status: 'fail',
+            message: response.message,
+          });
+
+          newResponse.code(response.statusCode);
+          return newResponse;
+        }
+
+        if (!response.isServer) return h.continue;
+
         const newResponse = h.response({
-          status: 'fail',
-          message: response.message,
+          status: 'error',
+          message: 'Terjadi kegagalan pada server kami',
         });
 
-        newResponse.code(response.statusCode);
+        newResponse.code(500);
         return newResponse;
       }
-
       return h.continue;
     }
   );

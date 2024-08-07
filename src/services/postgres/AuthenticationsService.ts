@@ -8,6 +8,8 @@ export default class AuthenticationsService {
     this._pool = new Pool();
 
     this.addRefreshToken = this.addRefreshToken.bind(this);
+    this.verifyRefreshToken = this.verifyRefreshToken.bind(this);
+    this.deleteRefreshToken = this.deleteRefreshToken.bind(this);
   }
 
   async addRefreshToken(token: string) {
