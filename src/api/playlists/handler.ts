@@ -23,7 +23,6 @@ export default class PlaylistsHandler {
   }
 
   async postPlaylistHandler(request: Request, h: ResponseToolkit) {
-    console.log(request.auth);
     const { id: credentialsId } = request.auth.credentials as { id: string };
     this._validator.validateAddPlaylistPayload(
       request.payload as { name: string }
@@ -52,7 +51,9 @@ export default class PlaylistsHandler {
 
     return {
       status: 'success',
-      data: playlists,
+      data: {
+        playlists,
+      },
     };
   }
 
@@ -69,18 +70,25 @@ export default class PlaylistsHandler {
     };
   }
 
-  async postPlaylistSongHandler(request: Request) {
+  async postPlaylistSongHandler(request: Request, h: ResponseToolkit) {
+    this._validator.validateAddSongToPlaylistPayload(
+      request.payload as { songId: string }
+    );
     const { id } = request.params;
     const { songId } = request.payload as { songId: string };
     const { id: credentialsId } = request.auth.credentials as { id: string };
 
     await this._service.verifyPlaylistOwner(id, credentialsId);
+    await this._service.verifySongExist(songId);
     await this._service.addSongToPlaylist(id, songId);
 
-    return {
+    const response = h.response({
       status: 'success',
       message: 'Song has been added to playlist',
-    };
+    });
+
+    response.code(201);
+    return response;
   }
 
   async getPlaylistSongsHandler(request: Request) {
@@ -88,9 +96,18 @@ export default class PlaylistsHandler {
     const { id: credentialsId } = request.auth.credentials as { id: string };
 
     await this._service.verifyPlaylistOwner(id, credentialsId);
-    const playlist = await this._service.getSongsFromPlaylist(id);
+    const result = await this._service.getSongsFromPlaylist(id);
 
-    console.log(playlist);
+    const playlist = {
+      id: result[0].id,
+      name: result[0].name,
+      username: result[0].username,
+      songs: result.map((song) => ({
+        id: song.id,
+        title: song.title,
+        performer: song.performer,
+      })),
+    };
 
     return {
       status: 'success',
@@ -101,6 +118,9 @@ export default class PlaylistsHandler {
   }
 
   async deletePlaylistSongHandler(request: Request) {
+    this._validator.validateDeletePlaylistSongPayload(
+      request.payload as { songId: string }
+    );
     const { id } = request.params;
     const { songId } = request.payload as { songId: string };
     const { id: credentialsId } = request.auth.credentials as { id: string };

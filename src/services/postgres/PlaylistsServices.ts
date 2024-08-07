@@ -16,6 +16,7 @@ export default class PlaylistsServices {
     this.getSongsFromPlaylist = this.getSongsFromPlaylist.bind(this);
     this.deleteSongFromPlaylist = this.deleteSongFromPlaylist.bind(this);
     this.verifyPlaylistOwner = this.verifyPlaylistOwner.bind(this);
+    this.verifySongExist = this.verifySongExist.bind(this);
   }
 
   async addPlaylist({ name, owner }: { name: string; owner: string }) {
@@ -73,6 +74,7 @@ export default class PlaylistsServices {
         FROM playlist_songs
         FULL JOIN songs ON playlist_songs.song_id = songs.id
         FULL JOIN playlists ON playlist_songs.playlist_id = playlists.id
+        FULL JOIN users ON playlists.owner = users.id
         WHERE playlist_songs.playlist_id = $1`,
       values: [playlistId],
     };
@@ -88,7 +90,7 @@ export default class PlaylistsServices {
 
   async deleteSongFromPlaylist(songId: string) {
     const query = {
-      text: 'DELETE FROM playlist_song WHERE song_id = $1 RETURNING id',
+      text: 'DELETE FROM playlist_songs WHERE song_id = $1 RETURNING id',
       values: [songId],
     };
 
@@ -117,6 +119,18 @@ export default class PlaylistsServices {
       throw new AuthorizationError(
         'You are not allowed to access this resource'
       );
+    }
+  }
+
+  async verifySongExist(id: string) {
+    const query = {
+      text: 'SELECT * FROM songs WHERE id = $1',
+      values: [id],
+    };
+
+    const result = await this._pool.query(query);
+    if (!result.rows.length) {
+      throw new NotFoundError('Song not found');
     }
   }
 }

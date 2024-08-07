@@ -1,4 +1,8 @@
-import { AddPlaylistSchema, AddSongToPlaylistSchema } from './schema';
+import {
+  AddPlaylistSchema,
+  AddSongToPlaylistSchema,
+  DeletePlaylistSongSchema,
+} from './schema';
 import InvariantError from '../../exceptions/InvariantError';
 
 const PlaylistsValidator = {
@@ -10,6 +14,13 @@ const PlaylistsValidator = {
   },
   validateAddSongToPlaylistPayload: (payload: { songId: string }) => {
     const validationResult = AddSongToPlaylistSchema.validate(payload);
+    if (validationResult.error) {
+      throw new InvariantError(validationResult.error.message);
+    }
+  },
+
+  validateDeletePlaylistSongPayload: (payload: { songId: string }) => {
+    const validationResult = DeletePlaylistSongSchema.validate(payload);
     if (validationResult.error) {
       throw new InvariantError(validationResult.error.message);
     }

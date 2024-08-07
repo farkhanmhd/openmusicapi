@@ -9,6 +9,12 @@ export default class SongsService {
 
   constructor() {
     this._pool = new Pool();
+
+    this.addSong = this.addSong.bind(this);
+    this.getSongs = this.getSongs.bind(this);
+    this.getSongById = this.getSongById.bind(this);
+    this.editSongById = this.editSongById.bind(this);
+    this.deleteSongById = this.deleteSongById.bind(this);
   }
 
   async addSong({
