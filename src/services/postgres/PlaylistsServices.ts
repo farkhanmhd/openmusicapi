@@ -17,6 +17,10 @@ export default class PlaylistsServices {
     this.deleteSongFromPlaylist = this.deleteSongFromPlaylist.bind(this);
     this.verifyPlaylistOwner = this.verifyPlaylistOwner.bind(this);
     this.verifySongExist = this.verifySongExist.bind(this);
+    this.addSongToPlaylistActivities =
+      this.addSongToPlaylistActivities.bind(this);
+    this.deleteSongFromPlaylistActivities =
+      this.deleteSongFromPlaylistActivities.bind(this);
   }
 
   async addPlaylist({ name, owner }: { name: string; owner: string }) {
@@ -132,5 +136,57 @@ export default class PlaylistsServices {
     if (!result.rows.length) {
       throw new NotFoundError('Song not found');
     }
+  }
+
+  async addSongToPlaylistActivities(
+    playlistId: string,
+    songId: string,
+    userId: string
+  ) {
+    const id = `psa-${nanoid(16)}`;
+    const time = new Date().toISOString();
+    const query = {
+      text: `INSERT INTO playlist_song_activities VALUES($1, $2, $3, $4, $5, $6)`,
+      values: [id, playlistId, songId, userId, 'add', time],
+    };
+
+    await this._pool.query(query);
+  }
+
+  async deleteSongFromPlaylistActivities(
+    playlistId: string,
+    songId: string,
+    userId: string
+  ) {
+    const id = `psa-${nanoid(16)}`;
+    const time = new Date().toISOString();
+    const query = {
+      text: `INSERT INTO playlist_song_activities VALUES($1, $2, $3, $4, $5, $6)`,
+      values: [id, playlistId, songId, userId, 'delete', time],
+    };
+
+    await this._pool.query(query);
+  }
+
+  async getPlaylistActivities(playlistId: string) {
+    const query = {
+      text: `SELECT psa.playlist_id, u.username, s.title, psa.action, psa.time
+        FROM playlist_song_activities psa
+        FULL JOIN playlists p ON psa.playlist_id = p.id
+        FULL JOIN users u ON psa.user_id = u.id
+        FULL JOIN songs s ON psa.song_id = s.id
+        WHERE psa.playlist_id = $1`,
+      values: [playlistId],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rows.length) {
+      throw new NotFoundError(
+        'Failed to get playlist activities. Playlist not found'
+      );
+    }
+
+    return result.rows;
   }
 }

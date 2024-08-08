@@ -4,10 +4,6 @@ export const AddPlaylistSchema = Joi.object({
   name: Joi.string().required(),
 });
 
-export const AddSongToPlaylistSchema = Joi.object({
-  songId: Joi.string().required(),
-});
-
-export const DeletePlaylistSongSchema = Joi.object({
+export const PlaylistSongSchema = Joi.object({
   songId: Joi.string().required(),
 });
