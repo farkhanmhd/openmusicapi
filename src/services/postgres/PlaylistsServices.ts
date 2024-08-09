@@ -2,12 +2,16 @@ import { Pool } from 'pg';
 import { nanoid } from 'nanoid';
 import NotFoundError from '../../exceptions/NotFoundError';
 import AuthorizationError from '../../exceptions/AuthorizationError';
+import CollaboratiionsService from './CollaborationsService';
 
 export default class PlaylistsServices {
   private _pool: Pool;
 
-  constructor() {
+  private _collaborationsService: CollaboratiionsService;
+
+  constructor(collaborationService: CollaboratiionsService) {
     this._pool = new Pool();
+    this._collaborationsService = collaborationService;
 
     this.addPlaylist = this.addPlaylist.bind(this);
     this.getPlaylists = this.getPlaylists.bind(this);
@@ -40,7 +44,10 @@ export default class PlaylistsServices {
       text: `SELECT playlists.id, playlists.name, users.username
          FROM playlists
          FULL JOIN users ON playlists.owner = users.id
-         WHERE playlists.owner = $1`,
+         FULL JOIN collaborations ON playlists.id = collaborations.playlist_id
+         WHERE playlists.owner = $1 OR collaborations.user_id = $1
+         GROUP BY playlists.id, users.username
+         `,
       values: [owner],
     };
 
@@ -188,5 +195,23 @@ export default class PlaylistsServices {
     }
 
     return result.rows;
+  }
+
+  async verifyPlaylistAccess(playlistId: string, userId: string) {
+    try {
+      await this.verifyPlaylistOwner(playlistId, userId);
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
+      try {
+        await this._collaborationsService.verifyCollaborator(
+          playlistId,
+          userId
+        );
+      } catch {
+        throw error;
+      }
+    }
   }
 }

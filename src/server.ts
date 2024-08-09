@@ -24,13 +24,18 @@ import playlists from './api/playlists';
 import PlaylistsServices from './services/postgres/PlaylistsServices';
 import PlaylistsValidator from './validator/playlists';
 
+import collaborations from './api/collaborations';
+import CollaboratiionsService from './services/postgres/CollaborationsService';
+import CollaborationsValidator from './validator/collaborations';
+
 dotenv.config();
 
 const init = async () => {
+  const collaborationsService = new CollaboratiionsService();
   const albumsService = new AlbumsService();
   const songsService = new SongsService();
   const usersService = new UsersService();
-  const playlistsService = new PlaylistsServices();
+  const playlistsService = new PlaylistsServices(collaborationsService);
   const authenticationsService = new AuthenticationsService();
 
   const server = Hapi.server({
@@ -101,6 +106,14 @@ const init = async () => {
       options: {
         service: playlistsService,
         validator: PlaylistsValidator,
+      },
+    },
+    {
+      plugin: collaborations,
+      options: {
+        collaborationsService,
+        playlistsService,
+        validator: CollaborationsValidator,
       },
     },
   ]);

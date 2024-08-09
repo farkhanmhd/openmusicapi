@@ -29,6 +29,7 @@ export default class PlaylistsHandler {
     this._validator.validateAddPlaylistPayload(
       request.payload as { name: string }
     );
+
     const { name } = request.payload as { name: string };
     const playlistId = await this._service.addPlaylist({
       name,
@@ -80,9 +81,8 @@ export default class PlaylistsHandler {
     const { songId } = request.payload as { songId: string };
     const { id: credentialsId } = request.auth.credentials as { id: string };
 
-    await this._service.verifyPlaylistOwner(id, credentialsId);
     await this._service.verifySongExist(songId);
-    console.log(id, songId, credentialsId);
+    await this._service.verifyPlaylistAccess(id, credentialsId);
     await this._service.addSongToPlaylist(id, songId);
     await this._service.addSongToPlaylistActivities(id, songId, credentialsId);
 
@@ -98,8 +98,8 @@ export default class PlaylistsHandler {
   async getPlaylistSongsHandler(request: Request) {
     const { id } = request.params;
     const { id: credentialsId } = request.auth.credentials as { id: string };
+    await this._service.verifyPlaylistAccess(id, credentialsId);
 
-    await this._service.verifyPlaylistOwner(id, credentialsId);
     const result = await this._service.getSongsFromPlaylist(id);
 
     const playlist = {
@@ -129,7 +129,8 @@ export default class PlaylistsHandler {
     const { songId } = request.payload as { songId: string };
     const { id: credentialsId } = request.auth.credentials as { id: string };
 
-    await this._service.verifyPlaylistOwner(id, credentialsId);
+    await this._service.verifyPlaylistAccess(id, credentialsId);
+
     await this._service.deleteSongFromPlaylist(songId);
     await this._service.deleteSongFromPlaylistActivities(
       id,
@@ -146,8 +147,7 @@ export default class PlaylistsHandler {
   async getPlaylistActivitiesHandler(request: Request) {
     const { id: credentialsId } = request.auth.credentials as { id: string };
     const { id } = request.params;
-
-    await this._service.verifyPlaylistOwner(id, credentialsId);
+    await this._service.verifyPlaylistAccess(id, credentialsId);
     const result = await this._service.getPlaylistActivities(id);
     const activities = {
       playlistId: result[0].playlist_id,
