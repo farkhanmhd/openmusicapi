@@ -1,7 +1,3 @@
-/**
- * @type {import('node-pg-migrate').ColumnDefinitions | undefined}
- */
-
 exports.up = (pgm) => {
   pgm.createTable('users', {
     id: {

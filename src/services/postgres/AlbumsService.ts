@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid';
 import { Pool } from 'pg';
 import { IAlbumPayload } from 'src/types';
 import NotFoundError from '../../exceptions/NotFoundError';
+import ClientError from '../../exceptions/ClientError';
 import { mapAlbum } from '../../utils/index';
 
 export default class AlbumsService {
@@ -9,6 +10,15 @@ export default class AlbumsService {
 
   constructor() {
     this._pool = new Pool();
+
+    this.addAlbum = this.addAlbum.bind(this);
+    this.getAlbums = this.getAlbums.bind(this);
+    this.getAlbumById = this.getAlbumById.bind(this);
+    this.editAlbumById = this.editAlbumById.bind(this);
+    this.deleteAlbumById = this.deleteAlbumById.bind(this);
+    this.addAlbumLike = this.addAlbumLike.bind(this);
+    this.removeAlbumLike = this.removeAlbumLike.bind(this);
+    this.getAlbumLikesCount = this.getAlbumLikesCount.bind(this);
   }
 
   async addAlbum({ name, year }: IAlbumPayload) {
@@ -69,5 +79,57 @@ export default class AlbumsService {
     if (!result.rows.length) {
       throw new NotFoundError('Failed to delete album. Album not found');
     }
+  }
+
+  async addAlbumLike(userId: string, albumId: string) {
+    const id = `album-like-${nanoid(16)}`;
+
+    const query = {
+      text: 'INSERT INTO user_album_likes (id, user_id, album_id) VALUES ($1, $2, $3) RETURNING id',
+      values: [id, userId, albumId],
+    };
+
+    try {
+      const result = await this._pool.query(query);
+      return result.rows[0].id;
+    } catch (err: any) {
+      if (err.code === '23505') {
+        throw new ClientError('You have already liked this album');
+      } else if (err.code === '23503') {
+        throw new NotFoundError('Album not found');
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  async removeAlbumLike(userId: string, albumId: string) {
+    const query = {
+      text: 'DELETE FROM user_album_likes WHERE user_id = $1 AND album_id = $2 RETURNING id',
+      values: [userId, albumId],
+    };
+
+    try {
+      await this._pool.query(query);
+    } catch (err: any) {
+      if (err.code === '23503') {
+        throw new NotFoundError('Album not found');
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  async getAlbumLikesCount(albumId: string) {
+    const query = {
+      text: 'SELECT COUNT(*) FROM user_album_likes WHERE album_id = $1',
+      values: [albumId],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rows.length) throw new NotFoundError('Album not found');
+
+    return Number(result.rows[0].count);
   }
 }

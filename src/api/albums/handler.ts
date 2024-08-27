@@ -17,6 +17,9 @@ export default class AlbumsHandler {
     this.getAlbumByIdHandler = this.getAlbumByIdHandler.bind(this);
     this.putAlbumByIdHandler = this.putAlbumByIdHandler.bind(this);
     this.deleteAlbumByIdHandler = this.deleteAlbumByIdHandler.bind(this);
+    this.postAlbumLikeHandler = this.postAlbumLikeHandler.bind(this);
+    this.deleteAlbumLikeHandler = this.deleteAlbumLikeHandler.bind(this);
+    this.getAlbumLikesHandler = this.getAlbumLikesHandler.bind(this);
   }
 
   async postAlbumHandler(request: Request, h: ResponseToolkit) {
@@ -87,5 +90,45 @@ export default class AlbumsHandler {
       status: 'success',
       message: 'Album has been deleted',
     };
+  }
+
+  async postAlbumLikeHandler(request: Request, h: ResponseToolkit) {
+    const { id } = request.params;
+    const { id: credentialsId } = request.auth.credentials as { id: string };
+
+    await this._service.addAlbumLike(credentialsId, id);
+
+    const response = h.response({
+      status: 'success',
+      message: 'Album has been liked',
+    });
+
+    response.code(201);
+    return response;
+  }
+
+  async deleteAlbumLikeHandler(request: Request, h: ResponseToolkit) {
+    const { id } = request.params;
+    const { id: credentialsId } = request.auth.credentials as { id: string };
+
+    await this._service.removeAlbumLike(credentialsId, id);
+
+    const response = h.response({
+      status: 'success',
+      message: 'Album has been disliked',
+    });
+
+    return response;
+  }
+
+  async getAlbumLikesHandler(request: Request, h: ResponseToolkit) {
+    const { id } = request.params;
+
+    const likes = await this._service.getAlbumLikesCount(id);
+
+    return h.response({
+      status: 'success',
+      data: { likes },
+    });
   }
 }

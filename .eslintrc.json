@@ -22,7 +22,8 @@
     "no-console": "off",
     "no-shadow": "off",
     "no-unused-vars": "off",
-    "no-underscore-dangle": "off"
+    "no-underscore-dangle": "off",
+    "@typescript-eslint/no-explicit-any": "off"
   },
   "ignorePatterns": ["dist/**/*"]
 }
