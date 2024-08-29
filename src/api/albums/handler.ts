@@ -125,11 +125,19 @@ export default class AlbumsHandler {
   async getAlbumLikesHandler(request: Request, h: ResponseToolkit) {
     const { id } = request.params;
 
-    const likes = await this._service.getAlbumLikesCount(id);
+    const { likes, fromCache } = await this._service.getAlbumLikesCount(id);
 
-    return h.response({
+    const response = h.response({
       status: 'success',
       data: { likes },
     });
+
+    if (fromCache) {
+      response.header('X-Data-Source', 'cache');
+    } else {
+      response.header('X-Data-Source', 'database');
+    }
+
+    return response;
   }
 }

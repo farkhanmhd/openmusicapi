@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid';
 import { Pool } from 'pg';
 import { IAlbumPayload } from 'src/types';
+import CacheService from '../redis/CacheService';
 import NotFoundError from '../../exceptions/NotFoundError';
 import ClientError from '../../exceptions/ClientError';
 import { mapAlbum } from '../../utils/index';
@@ -8,8 +9,11 @@ import { mapAlbum } from '../../utils/index';
 export default class AlbumsService {
   private _pool: Pool;
 
-  constructor() {
+  private _cacheService: CacheService;
+
+  constructor(cacheService: CacheService) {
     this._pool = new Pool();
+    this._cacheService = cacheService;
 
     this.addAlbum = this.addAlbum.bind(this);
     this.getAlbums = this.getAlbums.bind(this);
@@ -91,6 +95,7 @@ export default class AlbumsService {
 
     try {
       const result = await this._pool.query(query);
+      await this._cacheService.delete(`album-${albumId}-likes`);
       return result.rows[0].id;
     } catch (err: any) {
       if (err.code === '23505') {
@@ -111,6 +116,7 @@ export default class AlbumsService {
 
     try {
       await this._pool.query(query);
+      await this._cacheService.delete(`album-${albumId}-likes`);
     } catch (err: any) {
       if (err.code === '23503') {
         throw new NotFoundError('Album not found');
@@ -121,16 +127,25 @@ export default class AlbumsService {
   }
 
   async getAlbumLikesCount(albumId: string) {
-    const query = {
-      text: 'SELECT COUNT(*) FROM user_album_likes WHERE album_id = $1',
-      values: [albumId],
-    };
+    try {
+      const result = await this._cacheService.get(`album-${albumId}-likes`);
+      return { likes: Number(result), fromCache: true };
+    } catch (error) {
+      const query = {
+        text: 'SELECT COUNT(*) FROM user_album_likes WHERE album_id = $1',
+        values: [albumId],
+      };
 
-    const result = await this._pool.query(query);
+      const result = await this._pool.query(query);
 
-    if (!result.rows.length) throw new NotFoundError('Album not found');
+      if (!result.rows.length) {
+        throw new NotFoundError('Album not found');
+      }
 
-    return Number(result.rows[0].count);
+      const { count } = result.rows[0];
+      await this._cacheService.set(`album-${albumId}-likes`, count);
+      return { likes: Number(count), fromCache: false };
+    }
   }
 
   async addAlbumCover(albumId: string, cover: string) {

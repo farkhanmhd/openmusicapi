@@ -36,11 +36,14 @@ import uploads from './api/uploads';
 import StorageService from './services/S3/StorageService';
 import UploadsValidator from './validator/uploads';
 
+import CacheService from './services/redis/CacheService';
+
 dotenv.config();
 
 const init = async () => {
+  const cacheService = new CacheService();
   const collaborationsService = new CollaboratiionsService();
-  const albumsService = new AlbumsService();
+  const albumsService = new AlbumsService(cacheService);
   const songsService = new SongsService();
   const usersService = new UsersService();
   const playlistsService = new PlaylistsServices(collaborationsService);
