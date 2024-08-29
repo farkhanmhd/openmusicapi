@@ -2,7 +2,7 @@
 
 ## How to Run the App
 
-To get the OpenMusicAPI up and running, follow these steps:
+Make sure the consumer app is running. To get the OpenMusicAPI up and running, follow these steps:
 
 1. **Install Dependencies**
 
@@ -13,14 +13,22 @@ To get the OpenMusicAPI up and running, follow these steps:
 
    ```
 
-2. **Build The Project** Next, build the project using:
+2. Fill your .env file credentials. follow .env.example file and fill it with your credentials.
+
+3. **Migrate Database**
+
+   ```bash
+   npm run migrate up
+   ```
+
+4. **Build The Project** Next, build the project using:
 
    ```bash
    npm run build
 
    ```
 
-3. **Start the Application in Production Mode**
+5. **Start the Application in Production Mode**
    ```bash
    npm run start:prod
    ```
