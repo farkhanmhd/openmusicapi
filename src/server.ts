@@ -32,6 +32,10 @@ import exportsPlugin from './api/exports';
 import ProducerService from './services/rabbitmq/ProducerService';
 import Exportsvalidator from './validator/exports';
 
+import uploads from './api/uploads';
+import StorageService from './services/S3/StorageService';
+import UploadsValidator from './validator/uploads';
+
 dotenv.config();
 
 const init = async () => {
@@ -41,6 +45,7 @@ const init = async () => {
   const usersService = new UsersService();
   const playlistsService = new PlaylistsServices(collaborationsService);
   const authenticationsService = new AuthenticationsService();
+  const storageService = new StorageService();
 
   const server = Hapi.server({
     port: process.env.PORT,
@@ -126,6 +131,14 @@ const init = async () => {
         service: ProducerService,
         playlistsService,
         validator: Exportsvalidator,
+      },
+    },
+    {
+      plugin: uploads,
+      options: {
+        service: storageService,
+        albumsService,
+        validator: UploadsValidator,
       },
     },
   ]);

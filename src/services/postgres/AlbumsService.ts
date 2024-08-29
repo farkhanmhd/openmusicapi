@@ -24,8 +24,8 @@ export default class AlbumsService {
   async addAlbum({ name, year }: IAlbumPayload) {
     const id = `album-${nanoid(16)}`;
     const query = {
-      text: 'INSERT INTO albums VALUES($1, $2, $3) RETURNING id',
-      values: [id, name, year],
+      text: 'INSERT INTO albums VALUES($1, $2, $3, $4) RETURNING id',
+      values: [id, name, year, null],
     };
 
     const result = await this._pool.query(query);
@@ -39,7 +39,7 @@ export default class AlbumsService {
 
   async getAlbumById(id: string) {
     const query = {
-      text: `SELECT albums.id, albums.name, albums.year, songs.id as song_id ,songs.title, songs.performer
+      text: `SELECT albums.id, albums.name, albums.year, albums.cover ,songs.id as song_id ,songs.title, songs.performer
         FROM albums
         FULL JOIN songs ON albums.id = songs.album_id
         WHERE albums.id = $1`,
@@ -131,5 +131,18 @@ export default class AlbumsService {
     if (!result.rows.length) throw new NotFoundError('Album not found');
 
     return Number(result.rows[0].count);
+  }
+
+  async addAlbumCover(albumId: string, cover: string) {
+    const query = {
+      text: 'UPDATE albums SET cover = $1 WHERE id = $2',
+      values: [cover, albumId],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rowCount) {
+      throw new NotFoundError('Failed to update album. Album not found');
+    }
   }
 }

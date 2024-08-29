@@ -54,6 +54,7 @@ export default class AlbumsHandler {
     const album = {
       id: fetchedAlbum[0].id,
       name: fetchedAlbum[0].name,
+      coverUrl: fetchedAlbum[0].cover,
       year: fetchedAlbum[0].year,
       songs: fetchedAlbum
         .filter((songs) => songs.song_id)
