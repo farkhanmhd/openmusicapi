@@ -28,6 +28,10 @@ import collaborations from './api/collaborations';
 import CollaboratiionsService from './services/postgres/CollaborationsService';
 import CollaborationsValidator from './validator/collaborations';
 
+import exportsPlugin from './api/exports';
+import ProducerService from './services/rabbitmq/ProducerService';
+import Exportsvalidator from './validator/exports';
+
 dotenv.config();
 
 const init = async () => {
@@ -114,6 +118,14 @@ const init = async () => {
         collaborationsService,
         playlistsService,
         validator: CollaborationsValidator,
+      },
+    },
+    {
+      plugin: exportsPlugin,
+      options: {
+        service: ProducerService,
+        playlistsService,
+        validator: Exportsvalidator,
       },
     },
   ]);
